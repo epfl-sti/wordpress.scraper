@@ -1,0 +1,21 @@
+{
+  "name": "scraper",
+  "version": "0.1.0",
+  "description": "Quick scraper in node to validate the URL hierarchy on sti-test.epfl.ch",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "scraper"
+  ],
+  "author": "STI-IT Web <stiitweb@groupes.epfl.ch>",
+  "license": "ISC",
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.2",
+    "co": "^4.6.0",
+    "request": "^2.85.0",
+    "request-promise-native": "^1.0.5",
+    "throat": "^4.1.0"
+  }
+}
