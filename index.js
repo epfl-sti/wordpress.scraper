@@ -5,17 +5,19 @@ var throat = require('throat');
 var request = require('request-promise-native');
 var cheerio = require('cheerio');
 
-function* all_urls (opts) {
-  let { start, limit, recurse } = opts
-  let html = yield request(start),
-      $ = cheerio.load(html)
+function* url2cheerio (url) {
+  let html = yield request(url)
+  return cheerio.load(html)
+}
 
+function* all_urls (opts) {
+  let { start, limit } = opts
+  let $ = yield co(url2cheerio, start)
   let urls = $('a')
       .map((i, e) => new URL($(e).attr('href'), start))
       .get()
       .filter(url => url.origin === limit)
       .map(u => urlFormat(u, {fragment: false}))
-
   return urls
 }
 
