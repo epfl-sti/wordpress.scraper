@@ -1,7 +1,6 @@
 const URL = require('url'),
       _ = require('lodash'),
       co = require('co'),
-      ogen = require('ogen'),
       throat = require('throat'),
       request = require('request-promise-native'),
       cheerio = require('cheerio')
@@ -24,13 +23,17 @@ function all_urls ($, base) {
     .get()  // $().map() is weird in this way
 }
 
-/* Another coroutine function */
-function* scrape_step (opts) {
-  let { start, parsed, scrape_moar } = opts
+/* Another coroutine function, but this one returns (among other things)
+ * a generator. */
+function* scrape_step (start) {
   let $ = yield co(url2cheerio, start)
-  parsed(start, $)
-  for (let url of all_urls($, start)) {
-    scrape_moar(url)
+  return {
+    $,
+    urls_found: function* () {
+      for (let url of all_urls($, start)) {
+        yield url
+      }
+    }
   }
 }
 
@@ -38,15 +41,14 @@ function scrape (start, keep_cb) {
   visited = {}
   visited[start] = true
 
-  co(scrape_step, {
-    start: start,
-    parsed(url, $) {
-      console.log('Parsed ' + url)
-    },
-    scrape_moar(url) {
-      if (! keep_cb(url)) return
+  co(scrape_step, start)
+  .then(function(scrape_results) {
+    let { $, urls_found } = scrape_results
+    console.log('parsed ' + start)
+    for (let url of urls_found()) {
+      if (! keep_cb(url)) continue
       url_txt = URL.format(url, {fragment: false})
-      if (visited[url_txt]) return
+      if (visited[url_txt]) continue
       visited[url_txt] = true
       console.log('Now we could visit ' + url_txt)
     }
