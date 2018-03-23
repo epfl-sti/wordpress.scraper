@@ -24,7 +24,7 @@ function all_urls ($, base) {
 }
 
 /* Another coroutine function, but this one returns (among other things)
- * a generator. */
+ * a function that returns a generator. */
 function* scrape_step (start) {
   let $ = yield co(url2cheerio, start)
   return {
@@ -37,27 +37,49 @@ function* scrape_step (start) {
   }
 }
 
-function scrape (start, keep_cb, parsed_cb) {
+function scrape (opts) {
+  const { start, keep_p, parsed, error } = opts
   visited = {}
   visited[start] = true
 
-  co(scrape_step, start)
-  .then(function(scrape_results) {
-    let { $, urls_found } = scrape_results
-    parsed_cb(start, $)
-    for (let url of urls_found()) {
-      if (! keep_cb(url)) continue
-      url_txt = URL.format(url, {fragment: false})
-      if (visited[url_txt]) continue
-      visited[url_txt] = true
-      console.log('Now we could visit ' + url_txt)
-    }
-  })
-  .catch(function(e) { console.log("ERROR", e) })
+  function scrape_at (url) {
+    co(scrape_step, url)
+      .then(function(scrape_results) {
+        let { $, urls_found } = scrape_results
+        parsed(url, $)
+        for (let url of urls_found()) {
+          if (! keep_p(url)) continue
+          url_txt = URL.format(url, {fragment: false})
+          if (visited[url_txt]) continue
+          visited[url_txt] = true
+          scrape_at(url_txt)
+        }
+      })
+      .catch(function(e) {
+        if (error) {
+          error(url, e)
+        } else {
+          console.log("ERROR", e)
+        }
+      })
+  }
+
+  scrape_at(start)
 }
 
-scrape("https://sti-test.epfl.ch/", 
-       (url) => url.origin === "https://sti-test.epfl.ch",
-       function (url, $) {
-         console.log('Parsed ' + url)
-       })
+scrape({
+  start: "https://sti-test.epfl.ch/", 
+  keep_p: (url) => url.origin === "https://sti-test.epfl.ch",
+  parsed(url, $) {
+    console.log('Parsed ' + url)
+  },
+  error(url, e) {
+    if (e.statusCode) {
+      console.log(e.statusCode + ' at ' + url)
+    } else {
+      console.log(e + ' at ' + url)
+      throw e
+    }
+  }
+})
+
