@@ -4,7 +4,7 @@ const URL = require('url'),
       _ = require('lodash'),
       co = require('co'),
       throat = require('throat'),
-      request = require('request-promise-native'),
+      request = throat(10, require('request-promise-native')),
       cheerio = require('cheerio')
 
 /* A coroutine function: yields promises, expects
