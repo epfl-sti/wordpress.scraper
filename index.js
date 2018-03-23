@@ -41,7 +41,7 @@ function* scrape_step (start) {
 }
 
 function scrape (opts) {
-  const { start, keep_p, parsed, error } = opts
+  const { start, keep_p, parsed, link, error } = opts
   visited = {}
   visited[start] = true
 
@@ -51,8 +51,9 @@ function scrape (opts) {
         let { $, urls_found } = scrape_results
         parsed(from_url, $)
         for (let to_url of urls_found()) {
-          if (! keep_p(to_url)) continue
           to_url_txt = URL.format(to_url, {fragment: false})
+          if (link) link(from_url, to_url_txt)
+          if (! keep_p(to_url)) continue
           if (visited[to_url_txt]) continue
           visited[to_url_txt] = true
           scrape_at(to_url_txt)
@@ -76,8 +77,11 @@ scrape({
   parsed(url, $) {
     console.log('Parsed ' + url)
   },
+  link(from, to) {
+    console.log('Link from ' + from + ' to ' + to)
+  },
   error(url, e) {
-    if (e.statusCode) {
+    if (e.statusCode && e.statusCode < 500) {
       console.log(e.statusCode + ' at ' + url)
     } else {
       console.log(e + ' at ' + url)
