@@ -1,5 +1,6 @@
 const { URL } = require('url'),
-      urlFormat = require('url').format
+      urlFormat = require('url').format,
+      _ = require('lodash')
 var co = require('co');
 var throat = require('throat');
 var request = require('request-promise-native');
@@ -23,19 +24,35 @@ function all_urls ($, base) {
     .get()  // $().map() is weird in this way
 }
 
-/* Another coroutine function (unfinished)
- */
-function* scrape (opts) {
-  let { start, limit } = opts
+/* Another coroutine function */
+function* scrape_step (opts) {
+  let { start, parsed, scrape_moar } = opts
   let $ = yield co(url2cheerio, start)
-  return all_urls($, start)
-    .filter(url => url.origin === limit)
-    .map(u => urlFormat(u, {fragment: false}))
+  parsed(start, $)
+  for (let url of all_urls($, start)) {
+    scrape_moar(url)
+  }
 }
 
-co(scrape, { start: "https://sti-test.epfl.ch/",
-             limit: "https://sti-test.epfl.ch"})
-  .then(function(urls) {
-    console.log(urls)
+function scrape (start, keep_cb) {
+  visited = {}
+  visited[start] = true
+
+  co(scrape_step, {
+    start: start,
+    parsed(url, $) {
+      console.log('Parsed ' + url)
+    },
+    scrape_moar(url) {
+      if (! keep_cb(url)) return
+      url_txt = urlFormat(url, {fragment: false})
+      if (visited[url_txt]) return
+      visited[url_txt] = true
+      console.log('Now we could visit ' + url_txt)
+    }
   })
   .catch(function(e) { console.log("ERROR", e) })
+}
+
+scrape("https://sti-test.epfl.ch/", 
+       (url) => url.origin === "https://sti-test.epfl.ch")
