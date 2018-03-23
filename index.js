@@ -30,6 +30,7 @@ function scrape (opts) {
   const { start, keep_p, parsed, link, error } = opts
   visited = {}
   visited[start] = true
+  links = {}
 
   function scrape_at (from_url) {
     co(url2cheerio, start)
@@ -37,7 +38,13 @@ function scrape (opts) {
         parsed(from_url, $)
         for (let to_url of all_urls($, start)) {
           to_url_txt = URL.format(to_url, {fragment: false})
-          if (link) link(from_url, to_url_txt)
+          if (link) {
+            link_key = from_url + '→' + to_url_txt
+            if (! links[link_key]) {
+              link(from_url, to_url_txt)
+              links[link_key] = true
+            }
+          }
           if (! keep_p(to_url)) continue
           if (visited[to_url_txt]) continue
           visited[to_url_txt] = true
