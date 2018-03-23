@@ -42,22 +42,22 @@ function scrape (opts) {
   visited = {}
   visited[start] = true
 
-  function scrape_at (url) {
-    co(scrape_step, url)
+  function scrape_at (from_url) {
+    co(scrape_step, from_url)
       .then(function(scrape_results) {
         let { $, urls_found } = scrape_results
-        parsed(url, $)
-        for (let url of urls_found()) {
-          if (! keep_p(url)) continue
-          url_txt = URL.format(url, {fragment: false})
-          if (visited[url_txt]) continue
-          visited[url_txt] = true
-          scrape_at(url_txt)
+        parsed(from_url, $)
+        for (let to_url of urls_found()) {
+          if (! keep_p(to_url)) continue
+          to_url_txt = URL.format(to_url, {fragment: false})
+          if (visited[to_url_txt]) continue
+          visited[to_url_txt] = true
+          scrape_at(to_url_txt)
         }
       })
       .catch(function(e) {
         if (error) {
-          error(url, e)
+          error(from_url, e)
         } else {
           console.log("ERROR", e)
         }
