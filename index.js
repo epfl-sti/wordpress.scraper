@@ -1,10 +1,10 @@
-const { URL } = require('url'),
-      urlFormat = require('url').format,
-      _ = require('lodash')
-var co = require('co');
-var throat = require('throat');
-var request = require('request-promise-native');
-var cheerio = require('cheerio');
+const URL = require('url'),
+      _ = require('lodash'),
+      co = require('co'),
+      ogen = require('ogen'),
+      throat = require('throat'),
+      request = require('request-promise-native'),
+      cheerio = require('cheerio')
 
 /* A coroutine function: yields promises, expects
  * that the framework (co) "yields back" the results
@@ -20,7 +20,7 @@ function* url2cheerio (url) {
  */
 function all_urls ($, base) {
   return $('a')
-    .map((i, e) => new URL($(e).attr('href'), base))
+    .map((i, e) => new URL.URL($(e).attr('href'), base))
     .get()  // $().map() is weird in this way
 }
 
@@ -45,7 +45,7 @@ function scrape (start, keep_cb) {
     },
     scrape_moar(url) {
       if (! keep_cb(url)) return
-      url_txt = urlFormat(url, {fragment: false})
+      url_txt = URL.format(url, {fragment: false})
       if (visited[url_txt]) return
       visited[url_txt] = true
       console.log('Now we could visit ' + url_txt)
