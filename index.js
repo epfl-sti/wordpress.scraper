@@ -67,9 +67,7 @@ function scrape (opts) {
 
 scrape({
   start: "https://sti-test.epfl.ch/", 
-  keep_p(url_obj) {
-  return url_obj.origin === "https://sti-test.epfl.ch"
-  },
+  keep_p: (url_obj) => url_obj.origin === "https://sti-test.epfl.ch",
   parsed(url, $) {
     console.log('Parsed ' + url)
   },
