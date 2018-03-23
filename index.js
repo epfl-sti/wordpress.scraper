@@ -1,3 +1,5 @@
+'use strict'
+
 const URL = require('url'),
       _ = require('lodash'),
       co = require('co'),
@@ -20,7 +22,7 @@ function* url2cheerio (url) {
 function all_urls ($, base) {
   return $('a')
     .map(function (i, e) {
-      rel_url = $(e).attr('href');
+      const rel_url = $(e).attr('href')
       return rel_url ? new URL.URL(rel_url, base) : null
     })
     .get()  // $().map() is weird in this way
@@ -28,18 +30,18 @@ function all_urls ($, base) {
 
 function scrape (opts) {
   const { start, keep_p, parsed, link, error } = opts
-  visited = {}
+  var visited = {},
+      links = {}
   visited[start] = true
-  links = {}
 
   function scrape_at (from_url) {
     co(url2cheerio, start)
       .then(function($) {
         parsed(from_url, $)
         for (let to_url of all_urls($, start)) {
-          to_url_txt = URL.format(to_url, {fragment: false})
+          const to_url_txt = URL.format(to_url, {fragment: false})
           if (link) {
-            link_key = from_url + '→' + to_url_txt
+            const link_key = from_url + '→' + to_url_txt
             if (! links[link_key]) {
               link(from_url, to_url_txt)
               links[link_key] = true
