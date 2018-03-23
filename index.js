@@ -26,31 +26,16 @@ function all_urls ($, base) {
     .get()  // $().map() is weird in this way
 }
 
-/* Another coroutine function, but this one returns (among other things)
- * a function that returns a generator. */
-function* scrape_step (start) {
-  let $ = yield co(url2cheerio, start)
-  return {
-    $,
-    urls_found: function* () {
-      for (let url of all_urls($, start)) {
-        yield url
-      }
-    }
-  }
-}
-
 function scrape (opts) {
   const { start, keep_p, parsed, link, error } = opts
   visited = {}
   visited[start] = true
 
   function scrape_at (from_url) {
-    co(scrape_step, from_url)
-      .then(function(scrape_results) {
-        let { $, urls_found } = scrape_results
+    co(url2cheerio, start)
+      .then(function($) {
         parsed(from_url, $)
-        for (let to_url of urls_found()) {
+        for (let to_url of all_urls($, start)) {
           to_url_txt = URL.format(to_url, {fragment: false})
           if (link) link(from_url, to_url_txt)
           if (! keep_p(to_url)) continue
@@ -73,15 +58,19 @@ function scrape (opts) {
 
 scrape({
   start: "https://sti-test.epfl.ch/", 
-  keep_p: (url) => url.origin === "https://sti-test.epfl.ch",
+  keep_p(url_obj) {
+  return url_obj.origin === "https://sti-test.epfl.ch"
+  },
   parsed(url, $) {
     console.log('Parsed ' + url)
   },
   link(from, to) {
-    console.log('Link from ' + from + ' to ' + to)
+    if (to.startsWith('https://sti-test.epfl.ch')) {
+      console.log('Link from ' + from + ' to ' + to)
+    }
   },
   error(url, e) {
-    if (e.statusCode && e.statusCode < 500) {
+    if (e.statusCode) {
       console.log(e.statusCode + ' at ' + url)
     } else {
       console.log(e + ' at ' + url)
