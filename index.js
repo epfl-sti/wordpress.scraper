@@ -19,7 +19,10 @@ function* url2cheerio (url) {
  */
 function all_urls ($, base) {
   return $('a')
-    .map((i, e) => new URL.URL($(e).attr('href'), base))
+    .map(function (i, e) {
+      rel_url = $(e).attr('href');
+      return rel_url ? new URL.URL(rel_url, base) : null
+    })
     .get()  // $().map() is weird in this way
 }
 
