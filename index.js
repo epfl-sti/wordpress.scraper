@@ -37,14 +37,14 @@ function* scrape_step (start) {
   }
 }
 
-function scrape (start, keep_cb) {
+function scrape (start, keep_cb, parsed_cb) {
   visited = {}
   visited[start] = true
 
   co(scrape_step, start)
   .then(function(scrape_results) {
     let { $, urls_found } = scrape_results
-    console.log('parsed ' + start)
+    parsed_cb(start, $)
     for (let url of urls_found()) {
       if (! keep_cb(url)) continue
       url_txt = URL.format(url, {fragment: false})
@@ -57,4 +57,7 @@ function scrape (start, keep_cb) {
 }
 
 scrape("https://sti-test.epfl.ch/", 
-       (url) => url.origin === "https://sti-test.epfl.ch")
+       (url) => url.origin === "https://sti-test.epfl.ch",
+       function (url, $) {
+         console.log('Parsed ' + url)
+       })
