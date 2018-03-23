@@ -1,17 +1,19 @@
+/**
+ * A simple, recursive scraper
+ */
+
 'use strict'
 
 const URL = require('url'),
       _ = require('lodash'),
       co = require('co'),
-      throat = require('throat'),
-      request = throat(10, require('request-promise-native')),
       cheerio = require('cheerio')
 
 /* A coroutine function: yields promises, expects
  * that the framework (co) "yields back" the results
  * of said promises.
  */
-function* url2cheerio (url) {
+function* url2cheerio (url, request) {
   let html = yield request(url)
   return cheerio.load(html)
 }
@@ -28,14 +30,15 @@ function all_urls ($, base) {
     .get()  // $().map() is weird in this way
 }
 
-function scrape (opts) {
-  const { start, keep_p, parsed, link, error } = opts
+module.exports = function scrape (opts) {
+  let { request, start, keep_p, parsed, link, error } = opts
+  if (! request) { request = require('request-promise-native') }
   var visited = {},
       links = {}
   visited[start] = true
 
   function scrape_at (from_url) {
-    co(url2cheerio, start)
+    co(url2cheerio, start, request)
       .then(function($) {
         parsed(from_url, $)
         for (let to_url of all_urls($, start)) {
@@ -64,25 +67,3 @@ function scrape (opts) {
 
   scrape_at(start)
 }
-
-scrape({
-  start: "https://sti-test.epfl.ch/", 
-  keep_p: (url_obj) => url_obj.origin === "https://sti-test.epfl.ch",
-  parsed(url, $) {
-    console.log('Parsed ' + url)
-  },
-  link(from, to) {
-    if (to.startsWith('https://sti-test.epfl.ch')) {
-      console.log('Link from ' + from + ' to ' + to)
-    }
-  },
-  error(url, e) {
-    if (e.statusCode) {
-      console.log(e.statusCode + ' at ' + url)
-    } else {
-      console.log(e + ' at ' + url)
-      throw e
-    }
-  }
-})
-
