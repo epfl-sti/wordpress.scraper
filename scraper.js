@@ -25,7 +25,13 @@ function all_urls ($, base) {
   return $('a')
     .map(function (i, e) {
       const rel_url = $(e).attr('href')
-      return rel_url ? new URL.URL(rel_url, base) : null
+      if (! rel_url) return null
+      try {
+        return new URL.URL(rel_url, base)
+      } catch (error) {
+        console.log("Unparsable URL: " + rel_url)
+        return null
+      }
     })
     .get()  // $().map() is weird in this way
 }
