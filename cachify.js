@@ -19,7 +19,11 @@ function cachify (req) {
     return cache.get(key).then(function(in_cache) {
       if (in_cache.isCached) {
         events.emit("cache-hit", key)
-        return in_cache.value
+        if (in_cache.value instanceof Error) {
+          throw in_cache.value
+        } else {
+          return in_cache.value
+        }
       }
       events.emit("cache-miss", key)
       let response
@@ -28,6 +32,12 @@ function cachify (req) {
         events.emit("cache-write", key)
         return cache.set(key, resp)
       }).then(() => response)
+      .catch((e) => {
+        if (e.statusCode && e.statusCode >= 400 && e.statusCode < 500) {
+          cache.set(key, e)
+        }
+        throw e
+      })
     })
   }
   cachified.clear_cache = () => cache.clear()
