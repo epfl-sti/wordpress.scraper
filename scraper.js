@@ -56,8 +56,9 @@ module.exports = function scrape (opts) {
         let state = { base: referer, referer: referer }
         for (let {url, elt} of all_urls_and_elts($, state)) {
           let to_url = url
+          url.hash = ''
           if (! keep_p(to_url)) continue
-          const to_url_txt = URL.format(to_url, {fragment: false})
+          const to_url_txt = URL.format(to_url)
           if (link) {
             const link_key = referer + '→' + to_url_txt
             if (! links[link_key]) {
