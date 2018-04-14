@@ -21,13 +21,16 @@ function* url2cheerio (url, request) {
 /* An ordinary function, which does all it has to
  * do in a single game turn.
  */
-function all_urls ($, state) {
+function all_urls_and_elts ($, state) {
   return $('a')
     .map(function (i, e) {
       const rel_url = $(e).attr('href')
       if (! rel_url) return null
       try {
-        return new URL.URL(rel_url, state.base)
+        return {
+          url: new URL.URL(rel_url, state.base),
+          elt: e
+        }
       } catch (error) {
         console.log("Unparsable URL: " + rel_url + " in " + state.referer)
         return null
@@ -51,13 +54,14 @@ module.exports = function scrape (opts) {
         parsed(referer, $)
         let subscrapes = []
         let state = { base: referer, referer: referer }
-        for (let to_url of all_urls($, state)) {
+        for (let {url, elt} of all_urls_and_elts($, state)) {
+          let to_url = url
           if (! keep_p(to_url)) continue
           const to_url_txt = URL.format(to_url, {fragment: false})
           if (link) {
             const link_key = referer + '→' + to_url_txt
             if (! links[link_key]) {
-              link(referer, to_url_txt)
+              link(referer, $, elt, to_url_txt)
               links[link_key] = true
             }
           }

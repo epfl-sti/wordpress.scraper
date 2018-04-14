@@ -61,14 +61,10 @@ scrape({
     parsed_count++
     graph.vertex(url)
   },
-  link(from, to) {
-    if (to.includes('sti.epfl.ch')) {
-      // console.log('Link from ' + from + ' to ' + to)
-      graph.edge(graph.vertex(from), graph.vertex(to))
-      progress(function() {
-        console.log("Stats: " + parsed_count + " parsed, " + graph.stats())
-      })
-    }
+  link(from, $, e, to) {
+    progress(function() {
+      console.log("Stats: " + parsed_count + " parsed, " + graph.stats())
+    })
   },
   error(url, e) {
     if (e.statusCode) {
