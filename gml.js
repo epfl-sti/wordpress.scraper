@@ -13,12 +13,15 @@ const _ = require('lodash')
  */
 let Graph = module.exports.Graph = function Graph() {
   let vertices = {},
-      edges = {},         // Keyed by (non-uniquely) joining IDs of vertices
+      edges = {},
       vertex_order = [],
-      edge_order = []
+      edge_order = [],
+      vertex_count = 0,
+      edge_count = 0
 
   this.vertices = () => _.clone(vertex_order)
   this.edges    = () => _.clone(edge_order)
+  this.stats    = () => vertex_count + " vertices, " + edge_count + " edges"
 
   /**
    * @constructor
@@ -34,6 +37,7 @@ let Graph = module.exports.Graph = function Graph() {
     if (! vertices[id]) {
       vertices[id] = new Vertex(id);
       vertex_order.push(vertices[id])
+      vertex_count += 1
     }
     return vertices[id];
   }
@@ -55,20 +59,15 @@ let Graph = module.exports.Graph = function Graph() {
   }
 
   this.edge = function(from, to) {
-    let edge_key = from.id + to.id
+    let edge_key = from.sym + "/" + to.sym
     if (edges[edge_key]) {
-      for(let e of edges[edge_key]) {
-        if (e.from === from && e.to === to) {
-          return e;
-        }
-      }
+      return edges[edge_key]
     } else {
-      edges[edge_key] = [];
+      let e = edges[edge_key] = new Edge(from, to)
+      edge_order.push(e)
+      edge_count += 1
+      return e
     }
-    e = new Edge(from, to);
-    edges[edge_key].push(e);
-    edge_order.push(e);
-    return e;
   }
 }
 

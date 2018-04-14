@@ -40,5 +40,6 @@ describe("GML.Graph", function() {
     g.edge(g.vertex("Node 2"), g.vertex("Node 3")).label("From 2 to 3")
     g.edge(g.vertex("Node 3"), g.vertex("Node 1")).label("From 3 to 1")
     assert.equal(g.to_GML(), golden_output)
+    assert.equal(g.stats(), "3 vertices, 3 edges")
   })
 })
