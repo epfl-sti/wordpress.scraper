@@ -52,6 +52,7 @@ module.exports = function scrape (opts) {
         let subscrapes = []
         let state = { base: referer, referer: referer }
         for (let to_url of all_urls($, state)) {
+          if (! keep_p(to_url)) continue
           const to_url_txt = URL.format(to_url, {fragment: false})
           if (link) {
             const link_key = referer + '→' + to_url_txt
@@ -60,7 +61,6 @@ module.exports = function scrape (opts) {
               links[link_key] = true
             }
           }
-          if (! keep_p(to_url)) continue
           if (visited[to_url_txt]) continue
           visited[to_url_txt] = true
           subscrapes.push(scrape_at(to_url_txt))
