@@ -38,9 +38,10 @@ module.exports = function scrape (opts) {
   visited[start] = true
 
   function scrape_at (from_url) {
-    co(url2cheerio, start, request)
+    return co(url2cheerio, start, request)
       .then(function($) {
         parsed(from_url, $)
+        let subscrapes = []
         for (let to_url of all_urls($, start)) {
           const to_url_txt = URL.format(to_url, {fragment: false})
           if (link) {
@@ -53,8 +54,9 @@ module.exports = function scrape (opts) {
           if (! keep_p(to_url)) continue
           if (visited[to_url_txt]) continue
           visited[to_url_txt] = true
-          scrape_at(to_url_txt)
+          subscrapes.push(scrape_at(to_url_txt))
         }
+        return Promise.all(subscrapes)
       })
       .catch(function(e) {
         if (error) {
@@ -65,5 +67,5 @@ module.exports = function scrape (opts) {
       })
   }
 
-  scrape_at(start)
+  return scrape_at(start)
 }
