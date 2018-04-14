@@ -29,9 +29,18 @@ scrape({
   start: "https://sti.epfl.ch/",
   keep_p: function(url_obj) {
     unJsessionify(url_obj)
-    if (! url_obj.origin.includes("sti.epfl.ch") ) return false
-    if (url_obj.pathname && url_obj.pathname.includes("tequila_login")) return false
-    if (url_obj.pathname && url_obj.pathname.endsWith(".pdf")) return false
+    if (! url_obj.protocol.startsWith("https")) return false
+    if (url_obj.host !== "sti.epfl.ch") return false
+    if (url_obj.pathname) {
+      if (url_obj.pathname.includes("tequila_login")) return false
+      if (url_obj.pathname.endsWith(".pdf")) return false
+      if (url_obj.pathname.endsWith(".wmv")) return false
+      if (url_obj.pathname.endsWith(".docx")) return false
+      if (url_obj.pathname.endsWith(".doc")) return false
+      if (url_obj.pathname.endsWith(".avi")) return false
+      if (url_obj.pathname.endsWith(".png")) return false
+      if (url_obj.pathname.endsWith(".xls")) return false
+    }
     return true
   },
   parsed(url, $) {
