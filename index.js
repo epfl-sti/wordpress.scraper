@@ -25,8 +25,8 @@ let progress = do_every_n(1000),
 
 let graph = new gml.Graph()
 let request = throat(10, require('request-promise-native'))
-// Do this if you want to cache:
-request = cachify(request)
+// Do this if you want to cache (incl. negative caching on 40x errors):
+request = cachify.with40x(request)
 // Do this every once in a while if you want to clear the cache:
 // request.clear_cache()
 
@@ -36,6 +36,21 @@ request.on("cache-miss", function(url) {
 
 request.on("cache-hit", function(url) {
   process.stderr.write(".")
+})
+
+request.on("cache-write-with-error", function(url, e) {
+  console.log("Encaching error " + e.statusCode + " at " + url)
+})
+
+request.on("cache-hit-with-error", function(url, e) {
+  console.log("Using cached error " + e.statusCode + " at " + url)
+})
+
+request.on("cache-write", function(url) {
+  console.log("Cache write at " + url)
+  if (url.includes("fileNotFound")) {
+    console.log("WAT")
+  }
 })
 
 scrape({
