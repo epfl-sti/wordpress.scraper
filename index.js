@@ -1,6 +1,7 @@
 'use strict'
 
-const scrape = require('./scraper'),
+const debug = require("debug")("scrape-sti-epfl-ch"),
+      scrape = require('./scraper'),
       unJsessionify = require('./sanitize-url').unJsessionify,
       gml = require('./gml'),
       cachify = require('./cachify'),
@@ -62,6 +63,26 @@ scrape({
     graph.vertex(url)
   },
   link(from, $, e, to) {
+    let nav = $(e).parents("nav")[0],
+        link_is_backcrumb
+    if (nav) {
+      let navitemprop = $(nav).attr("itemprop")
+      if (navitemprop != "breadcrumb") return
+      let crumbs = $("li.nav-item a", nav)
+      if (e === crumbs[crumbs.length - 2]) {
+        link_is_backcrumb = true
+      } else {
+        return
+      }
+    }
+
+    if (link_is_backcrumb) {
+      debug("Backcrumb link: " + from + " → " + to)
+      graph.edge(graph.vertex(from), graph.vertex(to)).label("parent")
+    } else {
+      graph.edge(graph.vertex(from), graph.vertex(to))
+    }
+
     progress(function() {
       console.log("Stats: " + parsed_count + " parsed, " + graph.stats())
     })
@@ -75,6 +96,7 @@ scrape({
       throw e
     }
   }
-}).then(() =>
-        // writeFileP("sti-website.gml", graph.to_GML()))
-        console.log("Done - " + graph.stats()))
+}).then(() => {
+        console.log("Done - " + graph.stats())
+        return writeFileP("sti-website.gml", graph.to_GML())
+})
