@@ -63,24 +63,18 @@ scrape({
     graph.vertex(url)
   },
   link(from, $, e, to) {
-    let nav = $(e).parents("nav")[0],
-        link_is_backcrumb
-    if (nav) {
-      let navitemprop = $(nav).attr("itemprop")
-      if (navitemprop != "breadcrumb") return
-      let crumbs = $("li.nav-item a", nav)
-      if (e === crumbs[crumbs.length - 2]) {
-        link_is_backcrumb = true
-      } else {
-        return
-      }
-    }
+    let navKind = isNavLink($, e)
+    if (navKind && navKind !== "breadcrumb-parent") return
 
-    if (link_is_backcrumb) {
+    if (navKind) {
       debug("Backcrumb link: " + from + " → " + to)
       graph.edge(graph.vertex(from), graph.vertex(to)).label("parent")
     } else {
       graph.edge(graph.vertex(from), graph.vertex(to))
+    }
+
+    if (isHomepage(to)) {
+      debug("Link back from " + from + " to home (" + to + ") at " + $(e).parents().get().map((e) => e.name).join(","))
     }
 
     progress(function() {
@@ -100,3 +94,31 @@ scrape({
         console.log("Done - " + graph.stats())
         return writeFileP("sti-website.gml", graph.to_GML())
 })
+
+function isNavLink ($, e) {
+  let parent = $(e).parent()[0]
+  if (parent.name === "h1" && parent.attribs["class"].includes("site-title")) {
+    return "site-title"
+  }
+
+  let nav = $(e).parents("nav")[0]
+  if (nav) {
+    let navitemprop = $(nav).attr("itemprop")
+    if (navitemprop != "breadcrumb") {
+      return "nav"
+    }
+    let crumbs = $("li.nav-item a", nav)
+    if (e === crumbs[crumbs.length - 2]) {
+      return "breadcrumb-parent"
+    } else {
+      return "breadcrumb"
+    }
+  }
+  return null
+}
+
+function isHomepage (url) {
+  return (url === "https://sti.epfl.ch/fr" ||
+          url === "https://sti.epfl.ch/en" ||
+          url === "https://sti.epfl.ch/")
+}
