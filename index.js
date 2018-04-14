@@ -13,19 +13,19 @@ let request = throat(10, require('request-promise-native'))
 // Do this if you want to cache:
 request = cachify(request)
 // Do this every once in a while if you want to clear the cache:
-request.clear_cache()
+// request.clear_cache()
 
 scrape({
   request: request,
   start: "https://sti.epfl.ch/",
   keep_p: (url_obj) => url_obj.origin.includes("sti.epfl.ch"),
   parsed(url, $) {
-    console.log('Parsed ' + url)
+    // console.log('Parsed ' + url)
     graph.vertex(url)
   },
   link(from, to) {
     if (to.includes('sti.epfl.ch')) {
-      console.log('Link from ' + from + ' to ' + to)
+      // console.log('Link from ' + from + ' to ' + to)
       graph.edge(graph.vertex(from), graph.vertex(to))
     }
   },
