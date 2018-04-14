@@ -38,7 +38,7 @@ module.exports = function scrape (opts) {
   visited[start] = true
 
   function scrape_at (from_url) {
-    return co(url2cheerio, start, request)
+    return co(url2cheerio, from_url, request)
       .then(function($) {
         parsed(from_url, $)
         let subscrapes = []

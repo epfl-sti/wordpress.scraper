@@ -8,8 +8,7 @@
 let Cache = require('async-disk-cache')
 
 function cachify (req) {
-  let cache = new Cache('epflsti-scraper')
-  console.log(cache.pathFor("https://sti.epfl.ch/"))
+  let cache = new Cache('epflsti-scraper', {location: "/tmp/epflsti-scraper"})
   cachified = function(key) {
     return cache.get(key).then(function(in_cache) {
       if (in_cache.isCached) return in_cache.value
