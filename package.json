@@ -4,7 +4,7 @@
   "description": "Quick scraper in node to validate the URL hierarchy on sti-test.epfl.ch",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npx mocha"
   },
   "keywords": [
     "scraper"
@@ -18,5 +18,8 @@
     "request": "^2.85.0",
     "request-promise-native": "^1.0.5",
     "throat": "^4.1.0"
+  },
+  "devDependencies": {
+    "mocha": "^5.1.0"
   }
 }
