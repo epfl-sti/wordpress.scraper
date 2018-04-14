@@ -12,6 +12,7 @@
   "author": "STI-IT Web <stiitweb@groupes.epfl.ch>",
   "license": "ISC",
   "dependencies": {
+    "async-disk-cache": "^1.3.3",
     "cheerio": "^1.0.0-rc.2",
     "co": "^4.6.0",
     "lodash": "^4.17.5",

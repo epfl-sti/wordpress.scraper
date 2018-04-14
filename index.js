@@ -2,15 +2,21 @@
 
 const scrape = require('./scraper'),
       gml = require('./gml'),
+      cachify = require('./cachify'),
       throat = require('throat'),
       fs = require("fs"),
       promisify = require("util").promisify,
       writeFileP = promisify(fs.writeFile)
 
 let graph = new gml.Graph()
+let request = throat(10, require('request-promise-native'))
+// Do this if you want to cache:
+request = cachify(request)
+// Do this every once in a while if you want to clear the cache:
+request.clear_cache()
 
 scrape({
-  request: throat(10, require('request-promise-native')),
+  request: request,
   start: "https://sti.epfl.ch/",
   keep_p: (url_obj) => url_obj.origin.includes("sti.epfl.ch"),
   parsed(url, $) {
