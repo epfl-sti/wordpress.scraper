@@ -21,15 +21,15 @@ function* url2cheerio (url, request) {
 /* An ordinary function, which does all it has to
  * do in a single game turn.
  */
-function all_urls ($, base) {
+function all_urls ($, state) {
   return $('a')
     .map(function (i, e) {
       const rel_url = $(e).attr('href')
       if (! rel_url) return null
       try {
-        return new URL.URL(rel_url, base)
+        return new URL.URL(rel_url, state.base)
       } catch (error) {
-        console.log("Unparsable URL: " + rel_url)
+        console.log("Unparsable URL: " + rel_url + " in " + state.referer)
         return null
       }
     })
@@ -37,23 +37,26 @@ function all_urls ($, base) {
 }
 
 module.exports = function scrape (opts) {
-  let { request, start, keep_p, parsed, link, error } = opts
+  // scrape_at below should *not* close over opts - The pieces of opts that it needs
+  // are extracted below:
+  let { request, keep_p, parsed, link, error } = opts
   if (! request) { request = require('request-promise-native') }
   var visited = {},
       links = {}
-  visited[start] = true
+  visited[opts.start] = true
 
-  function scrape_at (from_url) {
-    return co(url2cheerio, from_url, request)
+  function scrape_at (referer) {
+    return co(url2cheerio, referer, request)
       .then(function($) {
-        parsed(from_url, $)
+        parsed(referer, $)
         let subscrapes = []
-        for (let to_url of all_urls($, start)) {
+        let state = { base: referer, referer: referer }
+        for (let to_url of all_urls($, state)) {
           const to_url_txt = URL.format(to_url, {fragment: false})
           if (link) {
-            const link_key = from_url + '→' + to_url_txt
+            const link_key = referer + '→' + to_url_txt
             if (! links[link_key]) {
-              link(from_url, to_url_txt)
+              link(referer, to_url_txt)
               links[link_key] = true
             }
           }
@@ -66,12 +69,12 @@ module.exports = function scrape (opts) {
       })
       .catch(function(e) {
         if (error) {
-          error(from_url, e)
+          error(referer, e)
         } else {
           console.log("ERROR", e)
         }
       })
   }
 
-  return scrape_at(start)
+  return scrape_at(opts.start)
 }
