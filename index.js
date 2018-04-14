@@ -1,6 +1,7 @@
 'use strict'
 
 const scrape = require('./scraper'),
+      unJsessionify = require('./sanitize-url').unJsessionify,
       gml = require('./gml'),
       cachify = require('./cachify'),
       throat = require('throat'),
@@ -18,7 +19,13 @@ request = cachify(request)
 scrape({
   request: request,
   start: "https://sti.epfl.ch/",
-  keep_p: (url_obj) => url_obj.origin.includes("sti.epfl.ch"),
+  keep_p: function(url_obj) {
+    unJsessionify(url_obj)
+    if (! url_obj.origin.includes("sti.epfl.ch") ) return false
+    if (url_obj.pathname && url_obj.pathname.includes("tequila_login")) return false
+    if (url_obj.pathname && url_obj.pathname.endsWith(".pdf")) return false
+    return true
+  },
   parsed(url, $) {
     // console.log('Parsed ' + url)
     graph.vertex(url)
