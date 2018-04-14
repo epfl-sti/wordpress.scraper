@@ -6,11 +6,15 @@
  * attached.
  */
 let Cache = require('async-disk-cache'),
-    EventEmitter = require('events').EventEmitter
+    EventEmitter = require('events').EventEmitter,
+    throat = require("throat")
 
 function cachify (req) {
   let cache = new Cache('epflsti-scraper', {location: "/tmp/epflsti-scraper"}),
       events = new EventEmitter()
+
+  cache.get = throat(100, cache.get)
+
   cachified = function(key) {
     return cache.get(key).then(function(in_cache) {
       if (in_cache.isCached) {
