@@ -13,6 +13,7 @@ function cachify (req) {
   let cache = new Cache('epflsti-scraper', {location: "/tmp/epflsti-scraper"}),
       events = new EventEmitter()
 
+  // Throttle insane filesystem parallelism:
   cache.get = throat(100, cache.get)
 
   cachified = function(key) {
