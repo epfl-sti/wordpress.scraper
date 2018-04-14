@@ -26,6 +26,7 @@ function all_urls_and_elts ($, state) {
     .map(function (i, e) {
       const rel_url = $(e).attr('href')
       if (! rel_url) return null
+      if (rel_url.startsWith("#")) return null
       try {
         return {
           url: new URL.URL(rel_url, state.base),
