@@ -16,6 +16,14 @@ request = cachify(request)
 // Do this every once in a while if you want to clear the cache:
 // request.clear_cache()
 
+request.on("cache-miss", function(url) {
+  console.log("Cache miss at " + url)
+})
+
+request.on("cache-hit", function(url) {
+  process.stderr.write(".")
+})
+
 scrape({
   request: request,
   start: "https://sti.epfl.ch/",
