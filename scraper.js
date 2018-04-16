@@ -71,6 +71,9 @@ module.exports = function scrape (opts) {
           visited[to_url_txt] = true
           subscrapes.push(scrape_at(to_url_txt))
         }
+        // Because of the .catch() below coming last, a subscrape promise
+        // never fails - Therefore, Promise.all will not complete too soon
+        // in case of HTTP error
         return Promise.all(subscrapes)
       })
       .catch(function(e) {
