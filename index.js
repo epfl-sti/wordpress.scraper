@@ -22,7 +22,8 @@ function do_every_n(n) {
 
 let progress = do_every_n(1000),
     parsed_count = 0,
-    newsatone_meta = {}
+    newsatone_meta = {},
+    newnews_meta = {}
 
 let graph = new gml.Graph()
 let request = throat(10, require('request-promise-native'))
@@ -77,9 +78,15 @@ scrape({
     // console.log('Parsed ' + url)
     parsed_count++
     graph.vertex(url)
+
     let matched= $.html().match(/newsatone.pl proudly presents: (\S+)/)
     if (matched) {
       newsatone_meta[url.toString()] = matched[1]
+    }
+
+    matched= $.html().match(/newnews.pl proudly presents: (\S+)/)
+    if (matched) {
+      newnews_meta[url.toString()] = matched[1]
     }
   },
   link(from, $, e, to) {
@@ -113,7 +120,10 @@ scrape({
 }).then(() => {
   console.log("Done - " + graph.stats())
   return writeFileP("sti-website.gml", graph.to_GML())
-}).then(() => writeFileP("newsatone-meta.json", JSON.stringify(newsatone_meta)))
+})
+.then(() => writeFileP("newsatone-meta.json", JSON.stringify(newsatone_meta)))
+.then(() => writeFileP("newnews-meta.json", JSON.stringify(newnews_meta)))
+
 
 function isNavLink ($, e) {
   let parent = $(e).parent()[0]
