@@ -23,7 +23,8 @@ function do_every_n(n) {
 let progress = do_every_n(1000),
     parsed_count = 0,
     newsatone_meta = {},
-    newnews_meta = {}
+    newnews_meta = {},
+    covershot_popup_meta = {}
 
 let graph = new gml.Graph()
 let request = throat(10, require('request-promise-native'))
@@ -79,15 +80,17 @@ scrape({
     parsed_count++
     graph.vertex(url)
 
-    let matched= $.html().match(/newsatone.pl proudly presents: (\S+)/)
-    if (matched) {
-      newsatone_meta[url.toString()] = matched[1]
+    let html = $.html()
+    function scrape_by_regex(html, re, into_object) {
+      let matched = html.match(re)
+      if (matched) {
+        into_object[url.toString()] = matched[1]
+      }
     }
 
-    matched= $.html().match(/newnews.pl proudly presents: (\S+)/)
-    if (matched) {
-      newnews_meta[url.toString()] = matched[1]
-    }
+    scrape_by_regex(html, /newsatone.pl proudly presents: (\S+)/,    newsatone_meta)
+    scrape_by_regex(html, /newnews.pl proudly presents: (\S+)/,      newnews_meta)
+    scrape_by_regex(html, /win.document.body.innerHTML = '([^']*)'/, covershot_popup_meta)
   },
   link(from, $, e, to) {
     let navKind = isNavLink($, e)
@@ -123,6 +126,7 @@ scrape({
 })
 .then(() => writeFileP("newsatone-meta.json", JSON.stringify(newsatone_meta)))
 .then(() => writeFileP("newnews-meta.json", JSON.stringify(newnews_meta)))
+.then(() => writeFileP("covershots-meta.json", JSON.stringify(covershot_popup_meta)))
 
 
 function isNavLink ($, e) {
